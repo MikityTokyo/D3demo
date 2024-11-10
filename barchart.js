@@ -135,6 +135,17 @@ var svg = d3.select("#ChartArea").append("svg")
   svg.append("g")
       .call(d3.axisLeft(y));
 
+// 棒グラフの上に値を表示 (ここから追加)
+svg.selectAll(".bar-label") 
+  .data(data)
+  .enter()
+  .append("text")
+  .attr("class", "bar-label")
+  .attr("x", function(d) { return x(d.emptyhouse) + 5, width - 50; }) 
+  .attr("y", function(d) { return y(d.locationName) + y.bandwidth() / 2; }) 
+  .attr("dy", ".35em") 
+  .text(function(d) { return d3.format(",.0f")(d.emptyhouse); }); 
+//
 }
 
 // ------------------------------------------------------------------
