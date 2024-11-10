@@ -6,7 +6,7 @@ function load_bar_chart (selector)
 {
     var file_json="assets/data1.json";
     var selectedValue = "data1";
-    var maxdomain = 470000
+    var maxdomain = 470000;
 
     console.log(selector);
 
@@ -17,8 +17,8 @@ function load_bar_chart (selector)
         document.getElementById('dataSelect1').style.backgroundColor = 'lightblue';
         document.getElementById('dataSelect2').style.backgroundColor = 'white';
         document.getElementById('dataSelect3').style.backgroundColor = 'white';
-        document.getElementById("dataSelect2").value = "default";
-        document.getElementById("dataSelect3").value = "default";
+        document.getElementById("dataSelect2").value = "data2";
+        document.getElementById("dataSelect3").value = "data3";
         maxdomain = 470000;
         break;
       case 2:
@@ -26,8 +26,8 @@ function load_bar_chart (selector)
         document.getElementById('dataSelect1').style.backgroundColor = 'white';
         document.getElementById('dataSelect2').style.backgroundColor = 'lightblue';
         document.getElementById('dataSelect3').style.backgroundColor = 'white';
-        document.getElementById("dataSelect1").value = "default";
-        document.getElementById("dataSelect3").value = "default";
+        document.getElementById("dataSelect1").value = "data1";
+        document.getElementById("dataSelect3").value = "data3";
         maxdomain = 470000;
         break;
       case 3:
@@ -35,20 +35,20 @@ function load_bar_chart (selector)
         document.getElementById('dataSelect1').style.backgroundColor = 'white';
         document.getElementById('dataSelect2').style.backgroundColor = 'white';
         document.getElementById('dataSelect3').style.backgroundColor = 'lightblue';
-        document.getElementById("dataSelect1").value = "default";
-        document.getElementById("dataSelect2").value = "default";
+        document.getElementById("dataSelect1").value = "data1";
+        document.getElementById("dataSelect2").value = "data2";
         maxdomain = 240000;
         break;
       default:
     }
 
-    file_json = "assets/" + selectedValue +".json"
+    file_json = "assets/" + selectedValue + ".json";
     console.log(file_json);
 
     jQuery.getJSON(file_json,function (data_org)
 	{
-        write_bar_chart(data_org,maxdomain)
-	})
+        write_bar_chart(data_org,maxdomain);
+	});
 }
 
 // ------------------------------------------------------------------
@@ -62,9 +62,9 @@ d3.select("#ChartArea").select("svg").remove();
 const data = data_org.slice(-15);
 
 // set the dimensions and margins of the graph
-const margin = {top: 20, right: 20, bottom: 30, left: 40}
-const width = 450 - margin.left - margin.right
-const height = 600 - margin.top - margin.bottom
+const margin = {top: 20, right: 20, bottom: 30, left: 40};
+const width = Math.min(450, window.innerWidth - 60) - margin.left - margin.right;
+const height = 600 - margin.top - margin.bottom;
 
 // set the ranges
 const y = d3.scaleBand()
@@ -90,7 +90,6 @@ var svg = d3.select("#ChartArea").append("svg")
   });
 
   // Scale the range of the data in the domains
-  //x.domain([0, d3.max(data, function(d){ return d.emptyhouse; })])
   x.domain([0, maxdomain]); //固定
   y.domain(data.map(function(d) { return d.locationName; }));
 
@@ -118,13 +117,54 @@ var svg = d3.select("#ChartArea").append("svg")
   .attr("class", "bar")
   .attr("x", 0)  // xの位置（グラフの左端に設定）
   .attr("y", function(d) { return y(d.locationName); })  // yの位置
-  .attr("width", 0)  // 初期の高さを0に設定
+  .attr("width", 0)  // 初期の幅を0に設定
+  .attr("height", y.bandwidth())  // 最終的な高さを設定
+  .attr("fill", "url(#barGradient)")  // グラデーションを適用
   .transition()  // アニメーションを開始
   .duration(500)  // 500ミリ秒かけて変化
-  .attr("width", function(d) { return x(d.emptyhouse); })  // 横幅
-  .attr("height", y.bandwidth())  // 最終的な高さを設定
-  .attr("y", function(d) { return y(d.locationName); }) // 最終的なy位置
-  .attr("fill", "url(#barGradient)");  // グラデーションを適用
+  .attr("width", function(d) { return x(d.emptyhouse); })  // 最終的な幅を設定
+  .on("end", function(d, i) {
+    // 各バーのアニメーションが終わったらラベルを追加
+    if (i === data.length - 1) {
+      // 全てのバーのアニメーションが終了したらラベルを表示する
+svg.selectAll(".bar-label")
+        .data(data)
+        .enter()
+        .append("text")
+        .attr("class", "bar-label")
+        .attr("x", function(d) { return x(d.emptyhouse) + 5; }) 
+        .attr("y", function(d) { return y(d.locationName) + y.bandwidth() / 2; }) 
+        .attr("dy", ".35em") 
+        .text(function(d) { return d3.format(",.0f")(d.emptyhouse); })
+        .attr("text-anchor", function(d) {
+            // ラベルの幅を取得
+            const labelWidth = this.getComputedTextLength(); 
+            // バーの幅を取得
+            const barWidth = x(d.emptyhouse); 
+            
+            // ラベルがチャートの幅を超える場合、右寄せにする
+            if (labelWidth + barWidth + 10 > width) { 
+                return "end";
+            } else {
+                return "start";
+            }
+        })
+        .attr("dx", function(d) {
+            // ラベルの位置を微調整
+            const labelWidth = this.getComputedTextLength();
+            const barWidth = x(d.emptyhouse); 
+            
+            // 右寄せの場合、少し左にずらす
+            if (labelWidth + barWidth + 10 > width) {
+                return -5; 
+            } else {
+                // 左寄せの場合、少し右にずらす
+                return 5;  
+            }
+        });
+
+    }
+  });
 
   // add the x Axis
   svg.append("g")
@@ -134,18 +174,4 @@ var svg = d3.select("#ChartArea").append("svg")
   // add the y Axis
   svg.append("g")
       .call(d3.axisLeft(y));
-
-// 棒グラフの上に値を表示 (ここから追加)
-svg.selectAll(".bar-label") 
-  .data(data)
-  .enter()
-  .append("text")
-  .attr("class", "bar-label")
-  .attr("x", function(d) { return x(d.emptyhouse) + 5, width - 50; }) 
-  .attr("y", function(d) { return y(d.locationName) + y.bandwidth() / 2; }) 
-  .attr("dy", ".35em") 
-  .text(function(d) { return d3.format(",.0f")(d.emptyhouse); }); 
-//
 }
-
-// ------------------------------------------------------------------
