@@ -1,0 +1,17 @@
+                    <td id="cell5-1">
+                        <span id="data5-1">-</span> 
+                        <span id="error5-1" style="color: red; display: none;">データ取得エラー</span>
+                    </td>
+                    <td id="cell5-2">
+                        <span id="data5-2">-</span> 
+                        <span id="error5-2" style="color: red; display: none;">データ取得エラー</span>
+                    </td>
+                    <td id="cell5-3">
+                        <span id="data5-3">-</span> 
+                        <span id="error5-3" style="color: red; display: none;">データ取得エラー</span>
+                    </td>
+{
+    "livePreview.defaultPreviewPath": "/index.html",
+    "IDX.aI.enableInlineCompletion": true,
+    "IDX.aI.enableCodebaseIndexing": true
+}

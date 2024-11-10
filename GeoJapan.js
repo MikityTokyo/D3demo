@@ -159,7 +159,7 @@ function displayData(localName) {
   document.getElementById('cell5-3').textContent = "-"; 
 
 
-  const file_json = "assets/local_data.json"
+  const file_json = "./assets/local_data.json"
   console.log(file_json);
 
   jQuery.getJSON(file_json,function (data)
